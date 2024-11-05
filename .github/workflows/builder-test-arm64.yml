@@ -90,7 +90,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: v2ray-${{ steps.get_filename.outputs.ASSET_NAME }}.zip
-          path: v2ray-${{ steps.get_filename.outputs.ASSET_NAME }}.
+          path: v2ray-${{ steps.get_filename.outputs.ASSET_NAME }}.zip
 
       - name: Upload files to GitHub release
         uses: svenstaro/upload-release-action@v2
