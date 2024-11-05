@@ -17,17 +17,17 @@ jobs:
     strategy:
       matrix:
         include:
-            # BEGIN ARM64 Specified
-            - goos: darwin
-              goarch: arm64
-              goarm64: v8.5,lse,crypto
-            - goos: darwin
-              goarch: arm64
-              goarm64: v8.6,lse,crypto
-            - goos: windows
-              goarch: arm64
-              goarm64: v8.7,lse,crypto
-            # END ARM64 Specified
+          # BEGIN ARM64 Specified
+          - goos: darwin
+            goarch: arm64
+            goarm64: v8.5,lse,crypto
+          - goos: darwin
+            goarch: arm64
+            goarm64: v8.6,lse,crypto
+          - goos: windows
+            goarch: arm64
+            goarm64: v8.7,lse,crypto
+          # END ARM64 Specified
       fail-fast: false
 
     runs-on: ubuntu-latest
