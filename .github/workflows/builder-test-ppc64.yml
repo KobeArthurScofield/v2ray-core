@@ -45,7 +45,7 @@ jobs:
       - name: Show workflow information
         id: get_filename
         run: |
-          export _NAME=$([\"$GOOS-$GOARCH$GOPPC64\"])
+          export _NAME="$GOOS-$GOARCH$GOPPC64"
           echo "GOOS: $GOOS, GOARCH: $GOARCH, GOPPC64: $GOPPC64, RELEASE_NAME: $_NAME"
           echo "ASSET_NAME=$_NAME" >> $GITHUB_OUTPUT
           echo "ASSET_NAME=$_NAME" >> $GITHUB_ENV
