@@ -1,0 +1,110 @@
+name: Enhance Builder for Other architecture
+# For OS and architecture comnbinations that supported by official reposity with only tweaked changes.
+# Build 20241105
+
+on:
+    workflow_dispatch:
+    release:
+      types: [published]
+    push:
+      branches:
+        - builder-enhance
+      paths:
+        - ".github/workflows/builder-enh-others.yml"
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+            # BEGIN ARM64 Specified
+            - goos: darwin
+              goarch: arm64
+              goarm64: v8.5,lse,crypto
+            - goos: darwin
+              goarch: arm64
+              goarm64: v8.6,lse,crypto
+            - goos: windows
+              goarch: arm64
+              goarm64: v8.7,lse,crypto
+            # END ARM64 Specified
+      fail-fast: false
+
+    runs-on: ubuntu-latest
+    env:
+      GOOS: ${{ matrix.goos }}
+      GOARCH: ${{ matrix.goarch }}
+      GOAMD64: ${{ matrix.goamd64 }}
+      GOARM64: ${{ matrix.goarm64 }}
+      GORISCV64: ${{ matrix.goriscv64 }}
+      GOPPC64: ${{ matrix.goppc64 }}
+      CGO_ENABLED: 0
+
+    steps:
+      - name: Checkout codebase
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: master
+
+      - name: Show workflow information
+        id: get_filename
+        run: |
+          export _NAME="$GOOS-$GOARCH$GOAMD64$GOARM64$GORISCV64$GOPPC64"
+          echo "GOOS: $GOOS, GOARCH: $GOARCH, GOAMD64: $GOAMD64, GOARM64: $GOARM64, GORISCV64: $GORISCV64, GOPPC64: $GOPPC64, RELEASE_NAME: $_NAME"
+          echo "ASSET_NAME=$_NAME" >> $GITHUB_OUTPUT
+          echo "ASSET_NAME=$_NAME" >> $GITHUB_ENV
+    
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 'stable'
+          check-latest: true
+
+      - name: Get project dependencies
+        run: go mod download
+
+      - name: Build V2Ray
+        run: |
+          mkdir -p build_assets
+          EXTRA_ARG=""
+          case "$GOOS-$GOARCH" in
+            "linux-amd64")
+              ;&
+            "linux-arm64")
+              EXTRA_ARG=EXTRA_ARG+"-buildmode=pie"
+              ;;
+          esac
+          go build -v -o build_assets/v2ray -trimpath -ldflags "-s -w -buildid=" ./main
+
+      - name: Rename Windows V2Ray
+        if: matrix.goos == 'windows'
+        run: |
+          cd ./build_assets || exit 1
+          mv v2ray v2ray.exe
+
+      - name: Create ZIP archive
+        run: |
+          pushd build_assets || exit 1
+          zip -9vr ../v2ray-$ASSET_NAME.zip .
+          popd || exit 1
+          FILE=./v2ray-$ASSET_NAME.zip
+          DGST=$FILE.dgst
+          openssl dgst -sha256 $FILE | sed 's/([^)]*)//g' >>$DGST
+          openssl dgst -sha512 $FILE | sed 's/([^)]*)//g' >>$DGST
+
+      - name: Upload ZIP file to Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: v2ray-${{ steps.get_filename.outputs.ASSET_NAME }}.zip
+          path: v2ray-${{ steps.get_filename.outputs.ASSET_NAME }}.zip
+
+      - name: Upload files to GitHub release
+        uses: svenstaro/upload-release-action@v2
+        if: github.event_name == 'release'
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file_glob: true
+          file: ./v2ray-${{ steps.get_filename.outputs.ASSET_NAME }}.zip*
+          tag: ${{ github.ref }}
+          overwrite: true
