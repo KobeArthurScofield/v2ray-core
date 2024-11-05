@@ -27,11 +27,11 @@ jobs:
       fail-fast: false
 
     runs-on: ubuntu-latest
-      env:
-        GOOS: ${{ matrix.goos }}
-        GOARCH: ${{ matrix.goarch }}
-        GOARM64: ${{ matrix.goarm64 }}
-        CGO_ENABLED: 0
+    env:
+      GOOS: ${{ matrix.goos }}
+      GOARCH: ${{ matrix.goarch }}
+      GOARM64: ${{ matrix.goarm64 }}
+      CGO_ENABLED: 0
 
     steps:
       - name: Checkout codebase
