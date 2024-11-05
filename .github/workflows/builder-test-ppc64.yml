@@ -1,0 +1,105 @@
+name: Test Builder for PPC64 architecture
+# For OS and architecture comnbinations that does not supported by official reposity
+# Build 20241105
+
+on:
+    workflow_dispatch:
+    release:
+      types: [published]
+    push:
+      branches:
+        - builder-test
+      paths:
+        - ".github/workflows/builder-test-ppc64.yml"
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        goos: [illumos, netbsd, plan9, solaris, aix]
+        goarch: [ppc64, ppc64le]
+        goppc64: [power8, power9, power10]
+        exclude:
+          - goos: illumos
+          - goos: netbsd
+          - goos: plan9
+          - goos: solaris
+          - goos: aix
+            goarch: ppc64le
+      fail-fast: false
+
+    runs-on: ubuntu-latest
+      env:
+        GOOS: ${{ matrix.goos }}
+        GOARCH: ${{ matrix.goarch }}
+        GOPPC64: ${{ matrix.goppc64 }}
+        CGO_ENABLED: 0
+
+    steps:
+      - name: Checkout codebase
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: master
+
+      - name: Show workflow information
+        id: get_filename
+        run: |
+          export _NAME=$([\"$GOOS-$GOARCH$GOPPC64\"])
+          echo "GOOS: $GOOS, GOARCH: $GOARCH, GOPPC64: $GOPPC64, RELEASE_NAME: $_NAME"
+          echo "ASSET_NAME=$_NAME" >> $GITHUB_OUTPUT
+          echo "ASSET_NAME=$_NAME" >> $GITHUB_ENV
+    
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 'stable'
+          check-latest: true
+
+      - name: Get project dependencies
+        run: go mod download
+
+      - name: Build V2Ray
+        run: |
+          mkdir -p build_assets
+          EXTRA_ARG=""
+          case "$GOOS-$GOARCH" in
+            "linux-amd64")
+              ;&
+            "linux-arm64")
+              EXTRA_ARG=EXTRA_ARG+"-buildmode=pie"
+              ;;
+          esac
+          go build -v -o build_assets/v2ray -trimpath -ldflags "-s -w -buildid=" ./main
+
+      - name: Rename Windows V2Ray
+        if: matrix.goos == 'windows'
+        run: |
+          cd ./build_assets || exit 1
+          mv v2ray v2ray.exe
+
+      - name: Create ZIP archive
+        run: |
+          pushd build_assets || exit 1
+          zip -9vr ../v2ray-$ASSET_NAME.zip .
+          popd || exit 1
+          FILE=./v2ray-$ASSET_NAME.zip
+          DGST=$FILE.dgst
+          openssl dgst -sha256 $FILE | sed 's/([^)]*)//g' >>$DGST
+          openssl dgst -sha512 $FILE | sed 's/([^)]*)//g' >>$DGST
+
+      - name: Upload ZIP file to Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: v2ray-${{ steps.get_filename.outputs.ASSET_NAME }}.zip
+          path: v2ray-${{ steps.get_filename.outputs.ASSET_NAME }}.
+
+      - name: Upload files to GitHub release
+        uses: svenstaro/upload-release-action@v2
+        if: github.event_name == 'release'
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file_glob: true
+          file: ./v2ray-${{ steps.get_filename.outputs.ASSET_NAME }}.zip*
+          tag: ${{ github.ref }}
+          overwrite: true
