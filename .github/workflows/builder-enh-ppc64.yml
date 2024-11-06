@@ -1,6 +1,6 @@
 name: Enhance Builder for PPC64 architecture
 # For OS and architecture comnbinations that supported by official reposity with only tweaked changes.
-# Build 20241105
+# Build 20241106
 
 on:
     workflow_dispatch:
