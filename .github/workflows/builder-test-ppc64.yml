@@ -1,6 +1,6 @@
 name: Test Builder for PPC64 architecture
 # For OS and architecture comnbinations that does not supported by official reposity
-# Build 20241106
+# Build 20250218
 
 on:
     workflow_dispatch:
@@ -62,21 +62,11 @@ jobs:
       - name: Build V2Ray
         run: |
           mkdir -p build_assets
-          EXTRA_ARG=""
-          case "$GOOS-$GOARCH" in
-            "linux-amd64")
-              ;&
-            "linux-arm64")
-              EXTRA_ARG=EXTRA_ARG+"-buildmode=pie"
-              ;;
-          esac
-          go build -v -o build_assets/v2ray -trimpath -ldflags "-s -w -buildid=" ./main
-
-      - name: Rename Windows V2Ray
-        if: matrix.goos == 'windows'
-        run: |
-          cd ./build_assets || exit 1
-          mv v2ray v2ray.exe
+          if [[ ${GOOS} == 'windows' ]]; then
+            go build -v -o build_assets/v2ray.exe -trimpath -ldflags "-s -w -buildid=" ./main
+          else
+            go build -v -o build_assets/v2ray -trimpath -ldflags "-s -w -buildid=" ./main
+          fi
 
       - name: Create ZIP archive
         run: |
