@@ -1,6 +1,6 @@
 name: Enhance Builder for RISCV64 architecture
 # For OS and architecture comnbinations that supported by official reposity with only tweaked changes.
-# Build 20250218
+# Build 20250726
 
 on:
     workflow_dispatch:
@@ -18,7 +18,7 @@ jobs:
       matrix:
         goos: [windows, freebsd, openbsd, linux, darwin, dragonfly]
         goarch: [riscv64]
-        goriscv64: [rva22u64]
+        goriscv64: [rva22u64, rva23u64]
         exclude:
           - goos: windows
           - goos: freebsd
