@@ -1,6 +1,6 @@
 name: Test Builder for Other architecture
 # For OS and architecture comnbinations that does not supported by official reposity
-# Build 20250726
+# Build 20250903
 
 on:
     workflow_dispatch:
@@ -84,7 +84,7 @@ jobs:
 
     steps:
       - name: Checkout codebase
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
           ref: master
@@ -98,7 +98,7 @@ jobs:
           echo "ASSET_NAME=$_NAME" >> $GITHUB_ENV
     
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
           check-latest: true
