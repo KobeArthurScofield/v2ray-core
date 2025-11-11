@@ -1,6 +1,6 @@
 name: Test Builder for Other architecture
 # For OS and architecture comnbinations that does not supported by official reposity
-# Build 20250903
+# Build 20251111
 
 on:
     workflow_dispatch:
@@ -126,7 +126,7 @@ jobs:
         # openssl dgst -sha512 $FILE | sed 's/([^)]*)//g' >>$DGST
 
       - name: Upload ZIP file to Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: v2ray-${{ steps.get_filename.outputs.ASSET_NAME }}.zip
           path: v2ray-${{ steps.get_filename.outputs.ASSET_NAME }}.zip
