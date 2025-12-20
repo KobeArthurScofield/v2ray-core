@@ -1,6 +1,6 @@
 name: Test Builder for ARM64 architecture
 # For OS and architecture comnbinations that does not supported by official reposity
-# Build 20251122
+# Build 20251120
 
 on:
     workflow_dispatch:
@@ -77,7 +77,7 @@ jobs:
         # openssl dgst -sha512 $FILE | sed 's/([^)]*)//g' >>$DGST
 
       - name: Upload ZIP file to Artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: v2ray-${{ steps.get_filename.outputs.ASSET_NAME }}.zip
           path: v2ray-${{ steps.get_filename.outputs.ASSET_NAME }}.zip
